@@ -1,0 +1,22 @@
+{
+  "name": "cors-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kostuk42/cors-proxy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kostuk42/cors-proxy/issues"
+  },
+  "homepage": "https://github.com/kostuk42/cors-proxy#readme",
+  "description": "",
+  "dependencies": {
+    "cors-anywhere": "^0.4.4"
+  }
+}
