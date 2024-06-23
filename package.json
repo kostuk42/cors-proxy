@@ -20,7 +20,9 @@
   "dependencies": {
     "cors": "^2.8.5",
     "cors-anywhere": "^0.4.4",
+    "express": "^4.19.2",
     "http": "^0.0.1-security",
-    "http-proxy": "^1.18.1"
+    "http-proxy": "^1.18.1",
+    "http-proxy-middleware": "^3.0.0"
   }
 }

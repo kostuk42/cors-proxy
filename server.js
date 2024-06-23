@@ -1,50 +1,46 @@
-const http = require('http');
-const httpProxy = require('http-proxy');
-const url = require('url');
+const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
-// Создание прокси-сервера
-const proxy = httpProxy.createProxyServer({});
+const app = express();
 
-// Обработка HTTP и HTTPS запросов
-const server = http.createServer((req, res) => {
-  const target = req.url.startsWith('/wss') ? `wss://${req.headers.host}` : `https://${req.headers.host}`;
-  const parsedUrl = url.parse(req.url);
-  const proxyUrl = parsedUrl.pathname.replace('/wss', '');
-  
-  // Обновляем URL для проксирования
-  req.url = proxyUrl;
-  
-  // Устанавливаем заголовки для CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    return;
+// Прокси для API запросов
+app.use('/api', createProxyMiddleware({
+  target: 'https://platform.fintacharts.com',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api': '/api', // Оставьте без изменений
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    proxyReq.setHeader('origin', 'https://platform.fintacharts.com');
   }
-  
-  // Проксирование запроса
-  proxy.web(req, res, { target: target, changeOrigin: true });
-});
+}));
 
-// Обработка WebSocket запросов
-server.on('upgrade', (req, socket, head) => {
-  const target = `wss://${req.headers.host}`;
-  const parsedUrl = url.parse(req.url);
-  const proxyUrl = parsedUrl.pathname.replace('/wss', '');
-  
-  // Обновляем URL для проксирования
-  req.url = proxyUrl;
+// Прокси для запросов на авторизацию
+app.use('/identity', createProxyMiddleware({
+  target: 'https://platform.fintacharts.com',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/identity': '/identity',
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    proxyReq.setHeader('origin', 'https://platform.fintacharts.com');
+  }
+}));
 
-  proxy.ws(req, socket, head, { target: target, changeOrigin: true });
-});
+// Прокси для WebSocket запросов
+app.use('/wss', createProxyMiddleware({
+  target: 'wss://platform.fintacharts.com',
+  changeOrigin: true,
+  ws: true,
+  pathRewrite: {
+    '^/wss': '/api/streaming/ws/v1/realtime', // перепишите путь для WebSocket
+  },
+  onProxyReqWs: (proxyReq, req, socket, options, head) => {
+    proxyReq.setHeader('origin', 'wss://platform.fintacharts.com');
+  }
+}));
 
-// Запуск сервера
-const host = process.env.HOST || '0.0.0.0';
-const port = process.env.PORT || 8080;
-
-server.listen(port, host, () => {
-  console.log(`Proxy server running on ${host}:${port}`);
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Proxy server is running on port ${PORT}`);
 });
