@@ -1,7 +1,19 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const cors = require('cors');
 
 const app = express();
+
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Разрешить CORS для всех маршрутов
+app.use(cors(corsOptions));
 
 // Прокси для API запросов
 app.use('/api', createProxyMiddleware({
@@ -12,6 +24,10 @@ app.use('/api', createProxyMiddleware({
   },
   onProxyReq: (proxyReq, req, res) => {
     proxyReq.setHeader('origin', 'https://platform.fintacharts.com');
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+    proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
   }
 }));
 
@@ -24,6 +40,10 @@ app.use('/identity', createProxyMiddleware({
   },
   onProxyReq: (proxyReq, req, res) => {
     proxyReq.setHeader('origin', 'https://platform.fintacharts.com');
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+    proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
   }
 }));
 
